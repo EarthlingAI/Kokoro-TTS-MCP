@@ -34,19 +34,29 @@ brew install espeak-ng
 
 ## Setup
 
-### Option A: Run the batch file (Windows)
+### Option A: Run the setup script
 
-Double-click **`setup_venv.bat`** or run it from a terminal. It creates the virtual environment, installs PyTorch with CUDA, and installs the remaining dependencies.
+The setup scripts create a virtual environment, install PyTorch with GPU support, and install the remaining dependencies from `requirements.txt`.
+
+**Windows** — double-click or run from a terminal:
+```
+setup_venv.bat
+```
+
+**Linux/macOS:**
+```bash
+chmod +x setup_venv.sh
+./setup_venv.sh
+```
+
+On Linux, PyTorch is installed with CUDA 12.6. On macOS, the default PyTorch build is used (includes MPS support for Apple Silicon).
 
 ### Option B: Manual setup
 
-1. **Create a virtual environment:**
+1. **Create and activate a virtual environment:**
 	```bash
 	python -m venv .venv
-	```
 
-2. **Activate it:**
-	```bash
 	# Windows
 	.venv\Scripts\activate
 
@@ -54,20 +64,21 @@ Double-click **`setup_venv.bat`** or run it from a terminal. It creates the virt
 	source .venv/bin/activate
 	```
 
-3. **Install PyTorch with CUDA support** (skip `--index-url` for CPU-only):
+2. **Install PyTorch with CUDA support** (skip `--index-url` for CPU-only or macOS):
 	```bash
 	pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
 	```
 
-4. **Install remaining dependencies:**
+3. **Install remaining dependencies:**
 	```bash
-	pip install kokoro>=0.9.4 soundfile sounddevice numpy "fastmcp>=2.0"
+	pip install -r requirements.txt
 	```
 
 ## Register with Claude Code
 
-Add the server to your user-level MCP config (`~/.claude.json`):
+Add the server to your user-level MCP config:
 
+**Windows:**
 ```bash
 claude mcp add-json kokoro-tts '{
   "type": "stdio",
@@ -81,11 +92,21 @@ claude mcp add-json kokoro-tts '{
 }' --scope user
 ```
 
-Replace `/path/to/kokoro-mcp/` with the actual path to this repo.
+**Linux:**
+```bash
+claude mcp add-json kokoro-tts '{
+  "type": "stdio",
+  "command": "/path/to/kokoro-mcp/.venv/bin/python",
+  "args": ["/path/to/kokoro-mcp/server.py"],
+  "env": {
+    "PHONEMIZER_ESPEAK_LIBRARY": "/usr/lib/x86_64-linux-gnu/libespeak-ng.so.1",
+    "PHONEMIZER_ESPEAK_PATH": "/usr/bin/espeak-ng",
+    "ESPEAK_DATA_PATH": "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
+  }
+}' --scope user
+```
 
-On Linux/macOS, update the `env` paths to match your espeak-ng installation (typically `/usr/lib/x86_64-linux-gnu/libespeak-ng.so.1` and `/usr/bin/espeak-ng`).
-
-Restart Claude Code after registering.
+Replace `/path/to/kokoro-mcp/` with the actual path to this repo. Restart Claude Code after registering.
 
 ## Tools
 
