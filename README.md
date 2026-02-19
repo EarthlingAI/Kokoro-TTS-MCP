@@ -1,6 +1,6 @@
 # Kokoro-TTS-MCP
 
-MCP server that lets agents like Claude Code speak to you in real-time using [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) — a fast, open-source TTS model with 54 voices across 10 languages.
+MCP server that lets agents like Claude Code speak to you in real-time using [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) — a fast, open-source TTS model with 54 voices across 9 languages.
 
 - Apache 2.0 — completely free, no API keys
 - ~210x real-time on an RTX 4090, runs on CPU too
@@ -11,26 +11,6 @@ MCP server that lets agents like Claude Code speak to you in real-time using [Ko
 
 - **Python 3.10+**
 - **NVIDIA GPU** (optional but recommended — falls back to CPU)
-- **espeak-ng** — required by Kokoro for phoneme conversion
-
-### Install espeak-ng
-
-**Windows (winget):**
-```
-winget install espeak-ng
-```
-
-**Windows (manual):** Download the installer from [espeak-ng releases](https://github.com/espeak-ng/espeak-ng/releases) and install to the default location (`C:\Program Files\eSpeak NG`).
-
-**Linux:**
-```bash
-sudo apt install espeak-ng
-```
-
-**macOS:**
-```bash
-brew install espeak-ng
-```
 
 ## Setup
 
@@ -76,19 +56,14 @@ On Linux, PyTorch is installed with CUDA 12.6. On macOS, the default PyTorch bui
 
 ## Register with Claude Code
 
-Add the server to your user-level MCP config:
+Add the server to your user-level MCP config. The server auto-detects espeak-ng paths, so no `env` block is needed.
 
 **Windows:**
 ```bash
 claude mcp add-json kokoro-tts '{
   "type": "stdio",
   "command": "/path/to/kokoro-mcp/.venv/Scripts/python.exe",
-  "args": ["/path/to/kokoro-mcp/server.py"],
-  "env": {
-    "PHONEMIZER_ESPEAK_LIBRARY": "C:/Program Files/eSpeak NG/libespeak-ng.dll",
-    "PHONEMIZER_ESPEAK_PATH": "C:/Program Files/eSpeak NG/espeak-ng.exe",
-    "ESPEAK_DATA_PATH": "C:/Program Files/eSpeak NG/espeak-ng-data"
-  }
+  "args": ["/path/to/kokoro-mcp/server.py"]
 }' --scope user
 ```
 
@@ -97,16 +72,22 @@ claude mcp add-json kokoro-tts '{
 claude mcp add-json kokoro-tts '{
   "type": "stdio",
   "command": "/path/to/kokoro-mcp/.venv/bin/python",
-  "args": ["/path/to/kokoro-mcp/server.py"],
-  "env": {
-    "PHONEMIZER_ESPEAK_LIBRARY": "/usr/lib/x86_64-linux-gnu/libespeak-ng.so.1",
-    "PHONEMIZER_ESPEAK_PATH": "/usr/bin/espeak-ng",
-    "ESPEAK_DATA_PATH": "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
-  }
+  "args": ["/path/to/kokoro-mcp/server.py"]
+}' --scope user
+```
+
+**macOS:**
+```bash
+claude mcp add-json kokoro-tts '{
+  "type": "stdio",
+  "command": "/path/to/kokoro-mcp/.venv/bin/python",
+  "args": ["/path/to/kokoro-mcp/server.py"]
 }' --scope user
 ```
 
 Replace `/path/to/kokoro-mcp/` with the actual path to this repo. Restart Claude Code after registering.
+
+> **Note:** You can still override espeak-ng paths manually by adding an `env` block with `PHONEMIZER_ESPEAK_LIBRARY` and/or `ESPEAK_DATA_PATH`.
 
 ## Tools
 

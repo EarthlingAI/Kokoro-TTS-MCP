@@ -3,19 +3,12 @@
 import os
 import sys
 
-# Set espeak-ng environment variables before any imports that might need them
-os.environ.setdefault(
-    "PHONEMIZER_ESPEAK_LIBRARY",
-    r"C:\Program Files\eSpeak NG\libespeak-ng.dll",
-)
-os.environ.setdefault(
-    "PHONEMIZER_ESPEAK_PATH",
-    r"C:\Program Files\eSpeak NG\espeak-ng.exe",
-)
-os.environ.setdefault(
-    "ESPEAK_DATA_PATH",
-    r"C:\Program Files\eSpeak NG\espeak-ng-data",
-)
+# Auto-detect espeak-ng paths (works on Windows, Linux, and macOS).
+# Manual env var overrides are still respected thanks to setdefault.
+import espeakng_loader
+
+os.environ.setdefault("PHONEMIZER_ESPEAK_LIBRARY", espeakng_loader.get_library_path())
+os.environ.setdefault("ESPEAK_DATA_PATH", espeakng_loader.get_data_path())
 
 import numpy as np
 import sounddevice as sd
@@ -92,7 +85,10 @@ def _get_pipeline():
         import torch
         from kokoro import KPipeline
 
-        device = "cuda:1" if torch.cuda.is_available() and torch.cuda.device_count() > 1 else "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available():
+            device = "cuda:1" if torch.cuda.device_count() > 1 else "cuda"
+        else:
+            device = "cpu"
         lang_code = "a"  # American English default
         _pipeline = KPipeline(lang_code=lang_code, device=device)
         print(f"Kokoro pipeline loaded on {device}", file=sys.stderr)
