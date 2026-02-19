@@ -1,0 +1,8 @@
+torch
+torchvision
+torchaudio
+kokoro>=0.9.4
+soundfile
+sounddevice
+numpy
+fastmcp>=2.0
