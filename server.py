@@ -1,4 +1,4 @@
-"""Kokoro TTS MCP Server - Enables Claude Code to speak aloud via Kokoro-82M."""
+"""Speak TTS MCP Server - Enables Claude to speak aloud via Kokoro-82M."""
 
 import os
 import sys
@@ -18,7 +18,7 @@ import numpy as np
 import sounddevice as sd
 from fastmcp import FastMCP
 
-mcp = FastMCP("kokoro-tts")
+mcp = FastMCP("speak-tts")
 
 # Lazy-loaded pipeline (loads model on first speak call)
 _pipeline = None

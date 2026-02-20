@@ -1,6 +1,6 @@
-# Kokoro TTS MCP
+# Speak TTS MCP
 
-MCP server that gives agents the ability to speak aloud using [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) — a fast, lightweight, open-source text-to-speech model.
+MCP server that gives agents the ability to speak aloud, powered by [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) — a fast, lightweight, open-source text-to-speech model.
 
 - 53 voices across 9 languages
 - Apache 2.0 — free, no API keys
@@ -33,13 +33,13 @@ The setup script auto-registers with Claude Code when the `claude` CLI is on PAT
 **Windows:**
 
 ```bash
-claude mcp add-json kokoro-tts '{"type":"stdio","command":"C:/absolute/path/to/kokoro-mcp/run.cmd"}' --scope user
+claude mcp add-json speak-tts '{"type":"stdio","command":"C:/absolute/path/to/speak-tts-mcp/run.cmd"}' --scope user
 ```
 
 **Linux / macOS:**
 
 ```bash
-claude mcp add-json kokoro-tts '{"type":"stdio","command":"/absolute/path/to/kokoro-mcp/run.sh"}' --scope user
+claude mcp add-json speak-tts '{"type":"stdio","command":"/absolute/path/to/speak-tts-mcp/run.sh"}' --scope user
 ```
 
 > Absolute paths are required. Relative paths will not work.
@@ -60,16 +60,16 @@ Add to the `mcpServers` object in your config file:
 **Windows:**
 
 ```json
-"kokoro-tts": {
-  "command": "C:\\absolute\\path\\to\\kokoro-mcp\\run.cmd"
+"speak-tts": {
+  "command": "C:\\absolute\\path\\to\\speak-tts-mcp\\run.cmd"
 }
 ```
 
 **Linux / macOS:**
 
 ```json
-"kokoro-tts": {
-  "command": "/absolute/path/to/kokoro-mcp/run.sh"
+"speak-tts": {
+  "command": "/absolute/path/to/speak-tts-mcp/run.sh"
 }
 ```
 

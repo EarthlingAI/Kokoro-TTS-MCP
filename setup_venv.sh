@@ -2,7 +2,7 @@
 set -e
 
 echo "============================================"
-echo " Kokoro TTS MCP - Virtual Environment Setup"
+echo " Speak TTS MCP - Virtual Environment Setup"
 echo "============================================"
 echo
 
@@ -71,13 +71,13 @@ echo
 # Auto-register with Claude Code if CLI is available
 if command -v claude &>/dev/null; then
 	echo "Registering with Claude Code..."
-	claude mcp remove kokoro-tts --scope user 2>/dev/null || true
-	claude mcp add-json kokoro-tts "{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}" --scope user
+	claude mcp remove speak-tts --scope user 2>/dev/null || true
+	claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}" --scope user
 	echo "Registered."
 else
 	echo "Claude Code CLI not found. Register manually:"
-	echo "  claude mcp add-json kokoro-tts '{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}' --scope user"
+	echo "  claude mcp add-json speak-tts '{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}' --scope user"
 fi
 echo
-echo "Restart Claude Code to start using Kokoro TTS."
+echo "Restart Claude Code to start using Speak TTS."
 echo
