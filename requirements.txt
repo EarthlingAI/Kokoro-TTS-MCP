@@ -3,3 +3,4 @@ soundfile
 sounddevice
 numpy
 fastmcp>=2.0
+espeakng-loader

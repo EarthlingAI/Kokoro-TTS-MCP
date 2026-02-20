@@ -82,6 +82,7 @@ def _get_pipeline():
     """Lazily initialize the Kokoro pipeline (downloads model on first call)."""
     global _pipeline
     if _pipeline is None:
+        import io
         import torch
         from kokoro import KPipeline
 
@@ -90,7 +91,16 @@ def _get_pipeline():
         else:
             device = "cpu"
         lang_code = "a"  # American English default
-        _pipeline = KPipeline(lang_code=lang_code, device=device)
+        # Redirect stdout during init to prevent stray prints (e.g. Kokoro's
+        # repo_id warning) from corrupting the MCP stdio protocol.
+        old_stdout = sys.stdout
+        sys.stdout = io.StringIO()
+        try:
+            _pipeline = KPipeline(
+                lang_code=lang_code, repo_id="hexgrad/Kokoro-82M", device=device,
+            )
+        finally:
+            sys.stdout = old_stdout
         print(f"Kokoro pipeline loaded on {device}", file=sys.stderr)
     return _pipeline
 

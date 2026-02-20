@@ -6,17 +6,6 @@ echo " Kokoro TTS MCP - Virtual Environment Setup"
 echo "============================================"
 echo
 
-# Check for espeak-ng
-if ! command -v espeak-ng &>/dev/null; then
-	echo "WARNING: espeak-ng not found. Install it before running the server:"
-	if [[ "$OSTYPE" == "darwin"* ]]; then
-		echo "         brew install espeak-ng"
-	else
-		echo "         sudo apt install espeak-ng"
-	fi
-	echo
-fi
-
 # Find python
 PYTHON=""
 if command -v python3 &>/dev/null; then

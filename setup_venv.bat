@@ -6,14 +6,6 @@ echo  Kokoro TTS MCP - Virtual Environment Setup
 echo ============================================
 echo.
 
-:: Check for espeak-ng
-where espeak-ng >nul 2>&1
-if errorlevel 1 (
-	echo WARNING: espeak-ng not found. Install it before running the server:
-	echo          winget install espeak-ng
-	echo.
-)
-
 :: Check Python is available
 python --version >nul 2>&1
 if errorlevel 1 (

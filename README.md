@@ -12,6 +12,8 @@ MCP server that lets agents like Claude Code speak to you in real-time using [Ko
 - **Python 3.10+**
 - **NVIDIA GPU** (optional but recommended — falls back to CPU)
 
+> **Note:** espeak-ng is bundled automatically via the `espeakng-loader` pip package — no separate install required.
+
 ## Setup
 
 ### Option A: Run the setup script
@@ -56,18 +58,18 @@ On Linux, PyTorch is installed with CUDA 12.6. On macOS, the default PyTorch bui
 
 ## Register with Claude Code
 
-Add the server to your user-level MCP config. The server auto-detects espeak-ng paths, so no `env` block is needed.
+Add the server to your user-level MCP config. Replace `/path/to/kokoro-mcp` with the absolute path to this repo.
 
 **Windows:**
 ```bash
 claude mcp add-json kokoro-tts '{
   "type": "stdio",
-  "command": "/path/to/kokoro-mcp/.venv/Scripts/python.exe",
-  "args": ["/path/to/kokoro-mcp/server.py"]
+  "command": "C:/path/to/kokoro-mcp/.venv/Scripts/python.exe",
+  "args": ["C:/path/to/kokoro-mcp/server.py"]
 }' --scope user
 ```
 
-**Linux:**
+**Linux/macOS:**
 ```bash
 claude mcp add-json kokoro-tts '{
   "type": "stdio",
@@ -76,45 +78,34 @@ claude mcp add-json kokoro-tts '{
 }' --scope user
 ```
 
-**macOS:**
-```bash
-claude mcp add-json kokoro-tts '{
-  "type": "stdio",
-  "command": "/path/to/kokoro-mcp/.venv/bin/python",
-  "args": ["/path/to/kokoro-mcp/server.py"]
-}' --scope user
-```
+Restart Claude Code after registering. Use **absolute paths** — relative paths will not work.
 
-Replace `/path/to/kokoro-mcp/` with the actual path to this repo. Restart Claude Code after registering.
-
-> **Note:** You can still override espeak-ng paths manually by adding an `env` block with `PHONEMIZER_ESPEAK_LIBRARY` and/or `ESPEAK_DATA_PATH`.
+> **Tip:** espeak-ng paths are auto-detected via `espeakng-loader`. To override them, add an `env` block with `PHONEMIZER_ESPEAK_LIBRARY` and/or `ESPEAK_DATA_PATH`.
 
 ## Register with Claude Desktop
 
-Add the following to your Claude Desktop config file:
+Add a `kokoro-tts` entry to the `mcpServers` object in your Claude Desktop config file:
 
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 
+**Windows:**
 ```json
-{
-  "mcpServers": {
-    "kokoro-tts": {
-      "command": "/path/to/kokoro-mcp/.venv/Scripts/python.exe",
-      "args": ["/path/to/kokoro-mcp/server.py"],
-      "env": {
-        "PHONEMIZER_ESPEAK_LIBRARY": "C:/Program Files/eSpeak NG/libespeak-ng.dll",
-        "PHONEMIZER_ESPEAK_PATH": "C:/Program Files/eSpeak NG/espeak-ng.exe",
-        "ESPEAK_DATA_PATH": "C:/Program Files/eSpeak NG/espeak-ng-data"
-      }
-    }
-  }
+"kokoro-tts": {
+  "command": "C:\\path\\to\\kokoro-mcp\\.venv\\Scripts\\python.exe",
+  "args": ["C:\\path\\to\\kokoro-mcp\\server.py"]
 }
 ```
 
-On **Linux/macOS**, change `command` to `.venv/bin/python` and update the `env` paths to your system's espeak-ng installation (or remove the `env` block entirely — the server auto-detects espeak-ng paths).
+**Linux/macOS:**
+```json
+"kokoro-tts": {
+  "command": "/path/to/kokoro-mcp/.venv/bin/python",
+  "args": ["/path/to/kokoro-mcp/server.py"]
+}
+```
 
-Replace `/path/to/kokoro-mcp/` with the actual path to this repo. Restart Claude Desktop after saving.
+Replace the paths with the absolute path to this repo. Use `\\` (backslash) on Windows. Restart Claude Desktop after saving.
 
 ## Tools
 
