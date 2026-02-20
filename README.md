@@ -89,6 +89,33 @@ Replace `/path/to/kokoro-mcp/` with the actual path to this repo. Restart Claude
 
 > **Note:** You can still override espeak-ng paths manually by adding an `env` block with `PHONEMIZER_ESPEAK_LIBRARY` and/or `ESPEAK_DATA_PATH`.
 
+## Register with Claude Desktop
+
+Add the following to your Claude Desktop config file:
+
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "kokoro-tts": {
+      "command": "/path/to/kokoro-mcp/.venv/Scripts/python.exe",
+      "args": ["/path/to/kokoro-mcp/server.py"],
+      "env": {
+        "PHONEMIZER_ESPEAK_LIBRARY": "C:/Program Files/eSpeak NG/libespeak-ng.dll",
+        "PHONEMIZER_ESPEAK_PATH": "C:/Program Files/eSpeak NG/espeak-ng.exe",
+        "ESPEAK_DATA_PATH": "C:/Program Files/eSpeak NG/espeak-ng-data"
+      }
+    }
+  }
+}
+```
+
+On **Linux/macOS**, change `command` to `.venv/bin/python` and update the `env` paths to your system's espeak-ng installation (or remove the `env` block entirely — the server auto-detects espeak-ng paths).
+
+Replace `/path/to/kokoro-mcp/` with the actual path to this repo. Restart Claude Desktop after saving.
+
 ## Tools
 
 ### `speak(text, voice?, speed?)`
