@@ -33,13 +33,16 @@ echo
 # Activate venv
 source .venv/bin/activate
 
-# Install PyTorch with CUDA (Linux gets CUDA wheels, macOS gets default/MPS)
+# Install PyTorch — auto-detect GPU
 if [[ "$OSTYPE" == "darwin"* ]]; then
 	echo "Installing PyTorch (macOS — MPS support)..."
 	pip install torch torchvision torchaudio
-else
-	echo "Installing PyTorch with CUDA 12.6 support..."
+elif command -v nvidia-smi &>/dev/null; then
+	echo "Installing PyTorch with CUDA 12.6..."
 	pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+else
+	echo "Installing PyTorch (CPU)..."
+	pip install torch torchvision torchaudio
 fi
 echo
 
@@ -52,9 +55,17 @@ echo "============================================"
 echo " Setup complete!"
 echo "============================================"
 echo
-echo "Next steps:"
-echo "  1. Register with Claude Code:"
-echo "     claude mcp add-json kokoro-tts '{\"type\":\"stdio\",\"command\":\"'$(pwd)'/.venv/bin/python\",\"args\":[\"'$(pwd)'/server.py\"]}' --scope user"
+
+# Auto-register with Claude Code if CLI is available
+if command -v claude &>/dev/null; then
+	echo "Registering with Claude Code..."
+	claude mcp remove kokoro-tts --scope user 2>/dev/null || true
+	claude mcp add-json kokoro-tts "{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}" --scope user
+	echo "Registered."
+else
+	echo "Claude Code CLI not found. Register manually:"
+	echo "  claude mcp add-json kokoro-tts '{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}' --scope user"
+fi
 echo
-echo "  2. Restart Claude Code."
+echo "Restart Claude Code to start using Kokoro TTS."
 echo

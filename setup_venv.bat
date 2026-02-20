@@ -28,9 +28,15 @@ echo.
 :: Activate venv
 call .venv\Scripts\activate.bat
 
-:: Install PyTorch with CUDA (Windows-specific, from custom index)
-echo Installing PyTorch with CUDA 12.6 support...
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+:: Install PyTorch — auto-detect GPU
+nvidia-smi >nul 2>&1
+if errorlevel 1 (
+	echo No NVIDIA GPU detected. Installing PyTorch (CPU^)...
+	pip install torch torchvision torchaudio
+) else (
+	echo NVIDIA GPU detected. Installing PyTorch with CUDA 12.6...
+	pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+)
 echo.
 
 :: Install cross-platform dependencies from requirements.txt
@@ -42,10 +48,19 @@ echo ============================================
 echo  Setup complete!
 echo ============================================
 echo.
-echo Next steps:
-echo   1. Register with Claude Code:
-echo      claude mcp add-json kokoro-tts "{\"type\":\"stdio\",\"command\":\"%cd%\\.venv\\Scripts\\python.exe\",\"args\":[\"%cd%\\server.py\"]}" --scope user
+
+:: Auto-register with Claude Code if CLI is available
+where claude >nul 2>&1
+if errorlevel 1 (
+	echo Claude Code CLI not found. Register manually:
+	echo   claude mcp add-json kokoro-tts "{\"type\":\"stdio\",\"command\":\"%cd%\\run.cmd\"}" --scope user
+) else (
+	echo Registering with Claude Code...
+	claude mcp remove kokoro-tts --scope user >nul 2>&1
+	claude mcp add-json kokoro-tts "{\"type\":\"stdio\",\"command\":\"%cd%\\run.cmd\"}" --scope user
+	echo Registered.
+)
 echo.
-echo   2. Restart Claude Code.
+echo Restart Claude Code to start using Kokoro TTS.
 echo.
 pause

@@ -18,7 +18,7 @@ MCP server that lets agents like Claude Code speak to you in real-time using [Ko
 
 ### Option A: Run the setup script
 
-The setup scripts create a virtual environment, install PyTorch with GPU support, and install the remaining dependencies from `requirements.txt`.
+The setup scripts create a virtual environment, install PyTorch (with automatic GPU detection), and install the remaining dependencies. If the Claude Code CLI is available, the server is registered automatically.
 
 **Windows** — double-click or run from a terminal:
 ```
@@ -31,7 +31,7 @@ chmod +x setup_venv.sh
 ./setup_venv.sh
 ```
 
-On Linux, PyTorch is installed with CUDA 12.6. On macOS, the default PyTorch build is used (includes MPS support for Apple Silicon).
+The scripts detect whether an NVIDIA GPU is present and install CUDA-enabled PyTorch only when needed (saves ~2 GB on CPU-only machines). On macOS, the default PyTorch build is used (includes MPS support for Apple Silicon).
 
 ### Option B: Manual setup
 
@@ -60,22 +60,16 @@ On Linux, PyTorch is installed with CUDA 12.6. On macOS, the default PyTorch bui
 
 Add the server to your user-level MCP config. Replace `/path/to/kokoro-mcp` with the absolute path to this repo.
 
+> **Note:** If you used the setup script and the Claude Code CLI was found, registration was done automatically — just restart Claude Code.
+
 **Windows:**
 ```bash
-claude mcp add-json kokoro-tts '{
-  "type": "stdio",
-  "command": "C:/path/to/kokoro-mcp/.venv/Scripts/python.exe",
-  "args": ["C:/path/to/kokoro-mcp/server.py"]
-}' --scope user
+claude mcp add-json kokoro-tts '{"type":"stdio","command":"C:/path/to/kokoro-mcp/run.cmd"}' --scope user
 ```
 
 **Linux/macOS:**
 ```bash
-claude mcp add-json kokoro-tts '{
-  "type": "stdio",
-  "command": "/path/to/kokoro-mcp/.venv/bin/python",
-  "args": ["/path/to/kokoro-mcp/server.py"]
-}' --scope user
+claude mcp add-json kokoro-tts '{"type":"stdio","command":"/path/to/kokoro-mcp/run.sh"}' --scope user
 ```
 
 Restart Claude Code after registering. Use **absolute paths** — relative paths will not work.
@@ -92,20 +86,18 @@ Add a `kokoro-tts` entry to the `mcpServers` object in your Claude Desktop confi
 **Windows:**
 ```json
 "kokoro-tts": {
-  "command": "C:\\path\\to\\kokoro-mcp\\.venv\\Scripts\\python.exe",
-  "args": ["C:\\path\\to\\kokoro-mcp\\server.py"]
+  "command": "C:\\path\\to\\kokoro-mcp\\run.cmd"
 }
 ```
 
 **Linux/macOS:**
 ```json
 "kokoro-tts": {
-  "command": "/path/to/kokoro-mcp/.venv/bin/python",
-  "args": ["/path/to/kokoro-mcp/server.py"]
+  "command": "/path/to/kokoro-mcp/run.sh"
 }
 ```
 
-Replace the paths with the absolute path to this repo. Use `\\` (backslash) on Windows. Restart Claude Desktop after saving.
+Replace the paths with the absolute path to this repo. Restart Claude Desktop after saving.
 
 ## Tools
 

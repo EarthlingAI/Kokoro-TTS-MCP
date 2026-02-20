@@ -3,6 +3,10 @@
 import os
 import sys
 
+# Cache models locally in .models/ (next to server.py) so they're visible and easy to clean up.
+_server_dir = os.path.dirname(os.path.abspath(__file__))
+os.environ.setdefault("HF_HUB_CACHE", os.path.join(_server_dir, ".models"))
+
 # Auto-detect espeak-ng paths (works on Windows, Linux, and macOS).
 # Manual env var overrides are still respected thanks to setdefault.
 import espeakng_loader
