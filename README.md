@@ -24,7 +24,7 @@ setup_venv.bat
 chmod +x setup_venv.sh && ./setup_venv.sh
 ```
 
-The script handles everything: creates a venv, installs PyTorch (auto-detects GPU vs CPU), installs dependencies, and registers with Claude Code if the CLI is available.
+The script handles everything: finds a compatible Python (3.10–3.12), creates a venv, installs PyTorch (auto-detects GPU vs CPU), installs dependencies, and registers with Claude Code if the CLI is available.
 
 ### 2. Register (if not auto-registered)
 
