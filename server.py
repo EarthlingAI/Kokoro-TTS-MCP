@@ -45,7 +45,7 @@ VOICES = {
         "jm_kumo",
     ],
     "Mandarin Chinese (Female)": [
-        "zf_xiaobei", "zf_xiaoni", "zf_xiaoxuan", "zf_xiaoyi",
+        "zf_xiaobei", "zf_xiaoni", "zf_xiaoyi",
     ],
     "Mandarin Chinese (Male)": [
         "zm_yunjian", "zm_yunxi", "zm_yunxia", "zm_yunyang",
@@ -112,14 +112,15 @@ def _get_pipeline():
 @mcp.tool()
 def speak(
     text: str,
-    voice: str = "af_heart",
+    voice: str = "af_nicole",
     speed: float = 1.0,
 ) -> str:
     """Speak text aloud using Kokoro TTS. Plays audio through the system speakers.
+    Text must be in English. Non-Latin characters are not pronounced correctly.
 
     Args:
-        text: The text to speak aloud.
-        voice: Voice ID to use. Default is af_heart (American English female).
+        text: The text to speak aloud. Must be in English.
+        voice: Voice ID to use. Default is af_nicole (American English female).
                Use list_voices() to see all available voices.
         speed: Speech speed multiplier. Default 1.0, range 0.5 to 2.0.
     """
@@ -168,7 +169,7 @@ def list_voices() -> dict:
     """List all available Kokoro TTS voices organized by language and gender.
 
     Returns a dictionary mapping language/gender categories to lists of voice IDs.
-    The default voice is af_heart (American English female).
+    The default voice is af_nicole (American English female).
     """
     return VOICES
 
