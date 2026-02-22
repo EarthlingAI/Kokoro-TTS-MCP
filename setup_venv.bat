@@ -53,11 +53,11 @@ echo.
 where claude >nul 2>&1
 if errorlevel 1 (
 	echo Claude Code CLI not found. Register manually:
-	echo   claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"%cd%\\run.cmd\"}" --scope user
+	echo   claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"%cd%\\.venv\\Scripts\\python.exe\",\"args\":[\"%cd%\\server.py\"]}" --scope user
 ) else (
 	echo Registering with Claude Code...
 	claude mcp remove speak-tts --scope user >nul 2>&1
-	claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"%cd%\\run.cmd\"}" --scope user
+	claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"%cd%\\.venv\\Scripts\\python.exe\",\"args\":[\"%cd%\\server.py\"]}" --scope user
 	echo Registered.
 )
 echo.

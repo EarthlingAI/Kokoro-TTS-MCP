@@ -33,8 +33,10 @@ The setup script auto-registers with Claude Code when the `claude` CLI is on PAT
 **Windows:**
 
 ```bash
-claude mcp add-json speak-tts '{"type":"stdio","command":"C:/absolute/path/to/speak-tts-mcp/run.cmd"}' --scope user
+claude mcp add-json speak-tts '{"type":"stdio","command":"C:/absolute/path/to/speak-tts-mcp/.venv/Scripts/python.exe","args":["C:/absolute/path/to/speak-tts-mcp/server.py"]}' --scope user
 ```
+
+> On Windows, register with `python.exe` directly. Wrapping via a `.cmd` batch file causes `cmd.exe` to buffer the stdio pipe, which makes tool calls hang.
 
 **Linux / macOS:**
 
@@ -61,7 +63,8 @@ Add to the `mcpServers` object in your config file:
 
 ```json
 "speak-tts": {
-  "command": "C:\\absolute\\path\\to\\speak-tts-mcp\\run.cmd"
+  "command": "C:\\absolute\\path\\to\\speak-tts-mcp\\.venv\\Scripts\\python.exe",
+  "args": ["C:\\absolute\\path\\to\\speak-tts-mcp\\server.py"]
 }
 ```
 
