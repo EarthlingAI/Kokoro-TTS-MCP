@@ -1,7 +1,58 @@
+#!/usr/bin/env python3
 """Speak TTS MCP Server - Enables Claude to speak aloud via Kokoro-82M."""
 
 import os
 import sys
+
+
+def _bootstrap_venv():
+	"""Re-exec under the .venv Python if we're not already in it.
+
+	This makes server.py self-bootstrapping: any system Python can launch it
+	and it will automatically find and use the project's virtual environment.
+	Eliminates the need for platform-specific launcher scripts (run.sh, run.cmd).
+	"""
+	server_dir = os.path.dirname(os.path.abspath(__file__))
+
+	if sys.platform == "win32":
+		venv_python = os.path.join(server_dir, ".venv", "Scripts", "python.exe")
+	else:
+		venv_python = os.path.join(server_dir, ".venv", "bin", "python")
+
+	if not os.path.isfile(venv_python):
+		print(
+			f"Warning: venv not found at {venv_python} — running with current interpreter.",
+			file=sys.stderr,
+		)
+		return
+
+	# Case-insensitive comparison on Windows (paths can differ in casing)
+	current = os.path.realpath(sys.executable)
+	target = os.path.realpath(venv_python)
+	if sys.platform == "win32":
+		already_in_venv = current.casefold() == target.casefold()
+	else:
+		already_in_venv = current == target
+
+	if already_in_venv:
+		return
+
+	# Re-exec with the venv Python
+	args = [venv_python, __file__] + sys.argv[1:]
+	if sys.platform == "win32":
+		# os.execv on Windows doesn't truly replace the process (CPython spawns
+		# a child and exits the parent), which breaks MCP stdio pipes. Use
+		# subprocess.run instead: the parent stays alive, child inherits stdio.
+		import subprocess
+
+		result = subprocess.run(args)
+		sys.exit(result.returncode)
+	else:
+		os.execv(venv_python, args)
+
+
+if __name__ == "__main__":
+	_bootstrap_venv()
 
 # Cache models locally in .models/ (next to server.py) so they're visible and easy to clean up.
 _server_dir = os.path.dirname(os.path.abspath(__file__))

@@ -72,11 +72,11 @@ echo
 if command -v claude &>/dev/null; then
 	echo "Registering with Claude Code..."
 	claude mcp remove speak-tts --scope user 2>/dev/null || true
-	claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}" --scope user
+	claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"python3\",\"args\":[\"$(pwd)/server.py\"]}" --scope user
 	echo "Registered."
 else
 	echo "Claude Code CLI not found. Register manually:"
-	echo "  claude mcp add-json speak-tts '{\"type\":\"stdio\",\"command\":\"$(pwd)/run.sh\"}' --scope user"
+	echo "  claude mcp add-json speak-tts '{\"type\":\"stdio\",\"command\":\"python3\",\"args\":[\"$(pwd)/server.py\"]}' --scope user"
 fi
 echo
 echo "Restart Claude Code to start using Speak TTS."
