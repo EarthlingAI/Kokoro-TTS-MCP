@@ -2,7 +2,9 @@
 """Speak TTS MCP Server - Enables Claude to speak aloud via Kokoro-82M."""
 
 import os
+import queue
 import sys
+import threading
 
 
 def _bootstrap_venv():
@@ -73,6 +75,9 @@ mcp = FastMCP("speak-tts")
 
 # Lazy-loaded pipeline (loads model on first speak call)
 _pipeline = None
+_speak_queue: queue.Queue = queue.Queue()
+_generation: int = 0
+_worker_started: bool = False
 
 VOICES = {
     "American English (Female)": [
@@ -160,6 +165,49 @@ def _get_pipeline():
     return _pipeline
 
 
+def _speak_worker():
+	"""Background worker — generates and plays queued speech sequentially."""
+	while True:
+		text, voice, speed, gen = _speak_queue.get()
+
+		if gen != _generation:
+			_speak_queue.task_done()
+			continue
+
+		try:
+			pipeline = _get_pipeline()
+			audio_chunks = []
+			for _, _, chunk in pipeline(text, voice=voice, speed=speed):
+				if gen != _generation:
+					break
+				if chunk is not None:
+					audio_chunks.append(chunk)
+
+			if gen != _generation or not audio_chunks:
+				continue
+
+			audio = np.concatenate(audio_chunks)
+			peak = np.max(np.abs(audio))
+			if peak > 0:
+				audio = audio / peak * 0.95
+
+			sd.play(audio, samplerate=24000)
+			sd.wait()
+
+		except Exception as e:
+			print(f"Speech error: {e}", file=sys.stderr)
+		finally:
+			_speak_queue.task_done()
+
+
+def _ensure_worker():
+	"""Start the background speech worker thread (once)."""
+	global _worker_started
+	if not _worker_started:
+		threading.Thread(target=_speak_worker, daemon=True).start()
+		_worker_started = True
+
+
 @mcp.tool()
 def speak(
     text: str,
@@ -175,44 +223,36 @@ def speak(
                Use list_voices() to see all available voices.
         speed: Speech speed multiplier. Default 1.0, range 0.5 to 2.0.
     """
-    try:
-        if not text or not text.strip():
-            return "Error: No text provided."
+    if not text or not text.strip():
+        return "Error: No text provided."
 
-        if voice not in ALL_VOICE_IDS:
-            return f"Error: Unknown voice '{voice}'. Use list_voices() to see available voices."
+    if voice not in ALL_VOICE_IDS:
+        return f"Error: Unknown voice '{voice}'. Use list_voices() to see available voices."
 
-        speed = max(0.5, min(2.0, speed))
+    speed = max(0.5, min(2.0, speed))
 
-        pipeline = _get_pipeline()
+    _ensure_worker()
+    _speak_queue.put((text, voice, speed, _generation))
+    return f"Successfully queued {len(text)} chars via '{voice}'. User will hear the message shortly."
 
-        # Generate audio - pipeline yields chunks for long text
-        audio_chunks = []
-        for _, _, audio in pipeline(text, voice=voice, speed=speed):
-            if audio is not None:
-                audio_chunks.append(audio)
 
-        if not audio_chunks:
-            return "Error: No audio generated. The text may be too short or invalid."
+@mcp.tool()
+def stop() -> str:
+	"""Stop any currently playing speech and clear the speech queue.
+	Only use when the user explicitly asks to stop speech.
+	"""
+	global _generation
+	_generation += 1
+	sd.stop()
 
-        # Concatenate all chunks
-        audio = np.concatenate(audio_chunks)
+	while not _speak_queue.empty():
+		try:
+			_speak_queue.get_nowait()
+			_speak_queue.task_done()
+		except queue.Empty:
+			break
 
-        # Normalize to prevent clipping
-        peak = np.max(np.abs(audio))
-        if peak > 0:
-            audio = audio / peak * 0.95
-
-        # Play audio and wait for completion
-        sample_rate = 24000
-        sd.play(audio, samplerate=sample_rate)
-        sd.wait()
-
-        duration = len(audio) / sample_rate
-        return f"Spoke {len(text)} characters in {duration:.1f}s using voice '{voice}'."
-
-    except Exception as e:
-        return f"Error during speech: {e}"
+	return "Stopped."
 
 
 @mcp.tool()

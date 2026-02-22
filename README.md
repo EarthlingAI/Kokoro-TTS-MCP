@@ -62,13 +62,17 @@ Add to the `mcpServers` object in your config file:
 
 ### `speak(text, voice?, speed?)`
 
-Speaks text aloud through the system speakers. Text must be in English — non-Latin characters are not pronounced correctly. Non-English voices apply their accent to English text.
+Queues text to be spoken aloud through the system speakers. Returns immediately — audio generates and plays in the background. Multiple calls queue up and play sequentially. Text must be in English — non-Latin characters are not pronounced correctly. Non-English voices apply their accent to English text.
 
 | Parameter | Type   | Default      | Description                    |
 | --------- | ------ | ------------ | ------------------------------ |
 | `text`    | string | _(required)_ | The text to speak              |
 | `voice`   | string | `af_nicole`  | Voice ID — see `list_voices()` |
 | `speed`   | float  | `1.0`        | Playback speed, `0.5` to `2.0` |
+
+### `stop()`
+
+Stops any currently playing speech and clears the speech queue.
 
 ### `list_voices()`
 
