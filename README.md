@@ -30,11 +30,17 @@ The script handles everything: finds a compatible Python (3.10–3.12), creates 
 
 The setup script auto-registers with Claude Code when the `claude` CLI is on PATH. If it wasn't found, register manually:
 
+**Linux / macOS:**
+
 ```bash
-claude mcp add-json speak-tts '{"type":"stdio","command":"python3","args":["/absolute/path/to/speak-tts-mcp/server.py"]}' --scope user
+claude mcp add-json speak-tts '{"type":"stdio","command":"/absolute/path/to/speak-tts-mcp/.venv/bin/python","args":["/absolute/path/to/speak-tts-mcp/server.py"]}' --scope user
 ```
 
-> Use `python` instead of `python3` on Windows. The server auto-detects and re-execs under its `.venv` Python, so any system Python works as the entry point.
+**Windows:**
+
+```bash
+claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"C:\\absolute\\path\\to\\speak-tts-mcp\\.venv\\Scripts\\python.exe\",\"args\":[\"C:\\absolute\\path\\to\\speak-tts-mcp\\server.py\"]}" --scope user
+```
 
 ### 3. Restart Claude Code
 
@@ -49,14 +55,25 @@ Add to the `mcpServers` object in your config file:
 | Windows | `%APPDATA%\Claude\claude_desktop_config.json`                     |
 | macOS   | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 
+**Linux / macOS:**
+
 ```json
 "speak-tts": {
-  "command": "python3",
+  "command": "/absolute/path/to/speak-tts-mcp/.venv/bin/python",
   "args": ["/absolute/path/to/speak-tts-mcp/server.py"]
 }
 ```
 
-> Use `python` instead of `python3` on Windows. Restart Claude Desktop after saving.
+**Windows:**
+
+```json
+"speak-tts": {
+  "command": "C:\\absolute\\path\\to\\speak-tts-mcp\\.venv\\Scripts\\python.exe",
+  "args": ["C:\\absolute\\path\\to\\speak-tts-mcp\\server.py"]
+}
+```
+
+> Restart Claude Desktop after saving.
 
 ## Tools
 

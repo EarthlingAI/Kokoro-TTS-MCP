@@ -28,13 +28,14 @@ def _bootstrap_venv():
 		)
 		return
 
-	# Case-insensitive comparison on Windows (paths can differ in casing)
-	current = os.path.realpath(sys.executable)
-	target = os.path.realpath(venv_python)
+	# Check sys.prefix instead of comparing binary paths — on platforms where
+	# the venv python is a symlink to the system binary, os.path.realpath()
+	# resolves to the same path for both, defeating the detection.
+	venv_dir = os.path.dirname(os.path.dirname(venv_python))  # .venv/
 	if sys.platform == "win32":
-		already_in_venv = current.casefold() == target.casefold()
+		already_in_venv = os.path.realpath(sys.prefix).casefold() == os.path.realpath(venv_dir).casefold()
 	else:
-		already_in_venv = current == target
+		already_in_venv = os.path.realpath(sys.prefix) == os.path.realpath(venv_dir)
 
 	if already_in_venv:
 		return
