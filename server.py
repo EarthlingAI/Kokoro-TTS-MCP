@@ -56,6 +56,14 @@ def _bootstrap_venv():
 if __name__ == "__main__":
 	_bootstrap_venv()
 
+# Use the system (Windows) certificate store so HuggingFace downloads work
+# behind corporate proxies / SSL inspection.
+try:
+	import truststore
+	truststore.inject_into_ssl()
+except ImportError:
+	pass
+
 # Cache models locally in .models/ (next to server.py) so they're visible and easy to clean up.
 _server_dir = os.path.dirname(os.path.abspath(__file__))
 os.environ.setdefault("HF_HUB_CACHE", os.path.join(_server_dir, ".models"))
