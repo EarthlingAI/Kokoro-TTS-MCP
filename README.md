@@ -127,14 +127,53 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Transient MCP Clients (mcporter, etc.)
+## Architecture
 
-Some MCP clients spawn a new server process per tool call rather than keeping it alive for the session. The server handles this gracefully — when the transport closes, the process waits for any in-progress audio to finish playing before exiting. No configuration required.
+The server uses a **coordinator architecture** to support all types of MCP clients:
 
-Note that each call incurs model loading overhead (~3–4s) since the process is short-lived. For latency-sensitive use, prefer a persistent client (Claude Desktop, Claude Code) where the model loads once and stays cached.
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│ Claude Code  │    │ mcporter     │    │ Claude Desktop│
+│ (persistent) │    │ (transient)  │    │ (persistent)  │
+└──────┬───────┘    └──────┬───────┘    └──────┬────────┘
+       │                   │                   │
+       │  server.py        │  server.py        │  server.py
+       │  (thin client)    │  (thin client)    │  (thin client)
+       └───────────────────┼───────────────────┘
+                           │ Unix socket / TCP
+                    ┌──────▼───────┐
+                    │ _coordinator │
+                    │   (1 proc)   │
+                    │              │
+                    │ Kokoro model │
+                    │ Audio queue  │
+                    │ sounddevice  │
+                    └──────────────┘
+```
+
+- **`server.py`** — MCP server (thin client). Validates inputs and sends JSON commands to the coordinator over a Unix domain socket (macOS/Linux) or TCP localhost (Windows).
+- **`_coordinator.py`** — Background process that loads the Kokoro model once, manages a shared speech queue, and plays audio sequentially. Auto-spawned by `server.py` on first `speak()` call.
+
+### Benefits
+
+- **No audio cutoff** — audio lives in the coordinator, not the MCP server process. Transient clients can die immediately after queueing speech.
+- **Shared queue** — speech from all connected agents plays in order, no overlapping.
+- **`stop()` works across processes** — any client can stop audio that another client queued.
+- **Model loaded once** — first call takes ~4s (model loading), subsequent calls are instant.
+- **Auto-lifecycle** — the coordinator spawns on demand and exits after 60 seconds of inactivity.
+
+### Coordinator Details
+
+- **Socket:** `/tmp/kokoro-tts.sock` (Unix) or TCP `127.0.0.1` on a dynamic port stored in `/tmp/kokoro-tts.port` (Windows)
+- **PID file:** `/tmp/kokoro-tts.pid`
+- **Log file:** `/tmp/kokoro-tts-coordinator.log`
+- **Idle timeout:** 60 seconds (configurable via `--idle-timeout`)
+- **Manual shutdown:** Send `{"cmd": "shutdown"}` to the socket, or kill the PID
+
+No configuration is required — everything is automatic.
 
 ## Notes
 
-- **GPU selection:** Uses `cuda:1` when multiple GPUs are available, otherwise `cuda:0`, with CPU as fallback. Edit `_get_pipeline()` in `server.py` to change this.
+- **GPU selection:** Uses `cuda:1` when multiple GPUs are available, otherwise `cuda:0`, with CPU as fallback. Edit `_get_pipeline()` in `_coordinator.py` to change this.
 - **Model cache:** Models are stored in `.models/` next to `server.py`. Delete this directory to force a fresh download.
 - **espeak-ng:** Bundled via `espeakng-loader` — no system install needed. Override with `PHONEMIZER_ESPEAK_LIBRARY` and `ESPEAK_DATA_PATH` env vars if needed.
