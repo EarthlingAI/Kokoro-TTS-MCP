@@ -127,6 +127,12 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## Transient MCP Clients (mcporter, etc.)
+
+Some MCP clients spawn a new server process per tool call rather than keeping it alive for the session. The server handles this gracefully — when the transport closes, the process waits for any in-progress audio to finish playing before exiting. No configuration required.
+
+Note that each call incurs model loading overhead (~3–4s) since the process is short-lived. For latency-sensitive use, prefer a persistent client (Claude Desktop, Claude Code) where the model loads once and stays cached.
+
 ## Notes
 
 - **GPU selection:** Uses `cuda:1` when multiple GPUs are available, otherwise `cuda:0`, with CPU as fallback. Edit `_get_pipeline()` in `server.py` to change this.

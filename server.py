@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Speak TTS MCP Server - Enables Claude to speak aloud via Kokoro-82M."""
 
+import atexit
 import os
 import queue
 import sys
@@ -87,6 +88,7 @@ _pipeline = None
 _speak_queue: queue.Queue = queue.Queue()
 _generation: int = 0
 _worker_started: bool = False
+_SHUTDOWN = object()  # Sentinel to tell the worker thread to exit cleanly
 
 VOICES = {
     "American English (Female)": [
@@ -177,7 +179,14 @@ def _get_pipeline():
 def _speak_worker():
 	"""Background worker — generates and plays queued speech sequentially."""
 	while True:
-		text, voice, speed, gen = _speak_queue.get()
+		item = _speak_queue.get()
+
+		# Shutdown sentinel — exit cleanly before interpreter teardown.
+		if item is _SHUTDOWN:
+			_speak_queue.task_done()
+			break
+
+		text, voice, speed, gen = item
 
 		if gen != _generation:
 			_speak_queue.task_done()
@@ -210,11 +219,41 @@ def _speak_worker():
 
 
 def _ensure_worker():
-	"""Start the background speech worker thread (once)."""
+	"""Start the background speech worker thread (once).
+
+	The thread is non-daemon so that Python's threading._shutdown() will
+	wait for it to finish after atexit handlers run. This prevents the
+	interpreter from tearing down C extensions (numpy, torch, thinc) while
+	native code is still executing on the worker thread.
+	"""
 	global _worker_started
 	if not _worker_started:
-		threading.Thread(target=_speak_worker, daemon=True).start()
+		threading.Thread(target=_speak_worker, daemon=False).start()
 		_worker_started = True
+
+
+def _drain_on_exit():
+	"""Cleanly shut down the speech worker before interpreter teardown.
+
+	Sequence:
+	  1. join() — wait for any in-progress speech to finish playing
+	  2. put(_SHUTDOWN) — tell the worker to exit its loop
+	  3. join() — wait for the sentinel to be consumed
+
+	The worker thread exits *before* Python begins tearing down modules
+	and C extensions, avoiding segfaults in native code (numpy/torch/thinc).
+
+	For persistent clients (Claude Desktop, Claude Code) the process never
+	exits, so this handler never fires — the non-blocking queue behavior
+	is preserved exactly as-is.
+	"""
+	if _worker_started:
+		_speak_queue.join()
+		_speak_queue.put(_SHUTDOWN)
+		_speak_queue.join()
+
+
+atexit.register(_drain_on_exit)
 
 
 @mcp.tool()
@@ -239,6 +278,13 @@ def speak(
         return f"Error: Unknown voice '{voice}'. Use list_voices() to see available voices."
 
     speed = max(0.5, min(2.0, speed))
+
+    # Pre-load the pipeline now (while the process is fully alive) so the
+    # background worker can use the cached instance even during interpreter
+    # shutdown.  Without this, transient MCP clients (e.g. mcporter) may
+    # close the transport before the worker gets a chance to import heavy
+    # dependencies like torch/kokoro, causing silent failures.
+    _get_pipeline()
 
     _ensure_worker()
     _speak_queue.put((text, voice, speed, _generation))
