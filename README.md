@@ -87,7 +87,7 @@ Queues text to be spoken aloud through the system speakers. Returns immediately 
 | `voice`   | string | `af_nicole`  | Voice ID — see `list_voices()` |
 | `speed`   | float  | `1.0`        | Playback speed, `0.5` to `2.0` |
 
-### `stop()`
+### `stop_all_speech()`
 
 Stops any currently playing speech and clears the speech queue.
 
@@ -158,7 +158,7 @@ The server uses a **coordinator architecture** to support all types of MCP clien
 
 - **No audio cutoff** — audio lives in the coordinator, not the MCP server process. Transient clients can die immediately after queueing speech.
 - **Shared queue** — speech from all connected agents plays in order, no overlapping.
-- **`stop()` works across processes** — any client can stop audio that another client queued.
+- **`stop_all_speech()` works across processes** — any client can stop audio that another client queued.
 - **Model loaded once** — first call takes ~4s (model loading), subsequent calls are instant.
 - **Auto-lifecycle** — the coordinator spawns on demand and exits after 60 seconds of inactivity.
 

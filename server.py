@@ -308,7 +308,7 @@ def speak(
 
 
 @mcp.tool()
-def stop() -> str:
+def stop_all_speech() -> str:
 	"""Stop any currently playing speech and clear the speech queue.
 	Only use when the user explicitly asks to stop speech.
 	"""
