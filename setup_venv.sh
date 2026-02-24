@@ -6,15 +6,15 @@ echo " Speak TTS MCP - Virtual Environment Setup"
 echo "============================================"
 echo
 
-# Find a compatible Python (3.10 – 3.12). kokoro requires Python <3.13.
+# Find a compatible Python (3.10+).
 find_python() {
-	for cmd in python3.12 python3.11 python3.10 python3 python; do
+	for cmd in python3.13 python3.12 python3.11 python3.10 python3 python; do
 		if command -v "$cmd" &>/dev/null; then
 			local ver
 			ver=$("$cmd" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
 			local major=${ver%%.*}
 			local minor=${ver##*.}
-			if [[ "$major" -eq 3 && "$minor" -ge 10 && "$minor" -le 12 ]]; then
+			if [[ "$major" -eq 3 && "$minor" -ge 10 ]]; then
 				echo "$cmd"
 				return
 			fi
@@ -24,8 +24,7 @@ find_python() {
 
 PYTHON=$(find_python)
 if [ -z "$PYTHON" ]; then
-	echo "ERROR: No compatible Python found. Install Python 3.10–3.12 and add it to PATH."
-	echo "       (kokoro requires Python <3.13)"
+	echo "ERROR: No compatible Python found. Install Python 3.10+ and add it to PATH."
 	exit 1
 fi
 echo "Using: $PYTHON ($($PYTHON --version))"
@@ -58,7 +57,9 @@ else
 fi
 echo
 
-# Install cross-platform dependencies from requirements.txt
+# Install dependencies (kokoro/misaki with --no-deps to bypass numpy==1.26.4 pin)
+echo "Installing kokoro and misaki (no-deps to avoid numpy conflict)..."
+pip install --no-deps kokoro==0.7.4 "misaki[en]==0.7.4"
 echo "Installing remaining dependencies..."
 pip install -r requirements.txt
 echo

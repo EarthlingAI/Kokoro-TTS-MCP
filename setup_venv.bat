@@ -39,7 +39,9 @@ if errorlevel 1 (
 )
 echo.
 
-:: Install cross-platform dependencies from requirements.txt
+:: Install dependencies (kokoro/misaki with --no-deps to bypass numpy==1.26.4 pin)
+echo Installing kokoro and misaki (no-deps to avoid numpy conflict)...
+pip install --no-deps kokoro==0.7.4 "misaki[en]==0.7.4"
 echo Installing remaining dependencies...
 pip install -r requirements.txt
 echo.

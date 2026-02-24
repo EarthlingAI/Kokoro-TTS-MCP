@@ -1,8 +1,27 @@
-kokoro>=0.9.4
+# Core TTS
+kokoro==0.7.4
+misaki[en]==0.7.4
+
+# Kokoro transitive deps (installed explicitly because kokoro is
+# installed with --no-deps to bypass its overly strict numpy==1.26.4 pin,
+# which has no pre-built wheel for Python 3.13+).
+numpy>=2.0
+loguru
+scipy
+phonemizer
+spacy<4
+num2words
+
+# Transformers (kokoro dep, pinned for compat)
 transformers<4.47
+
+# Audio
 soundfile
 sounddevice
-numpy
+
+# MCP framework
 fastmcp>=2.0
+
+# Platform support
 espeakng-loader
 truststore

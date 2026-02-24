@@ -152,7 +152,7 @@ def _get_pipeline():
 		sys.stdout = io.StringIO()
 		try:
 			_pipeline = KPipeline(
-				lang_code=lang_code, repo_id="hexgrad/Kokoro-82M", device=device,
+				lang_code=lang_code, device=device,
 			)
 		finally:
 			sys.stdout = old_stdout
