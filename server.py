@@ -209,15 +209,18 @@ def _spawn_coordinator():
 
 	with open(log_file, "a") as log:
 		if _IS_WINDOWS:
-			# Windows: CREATE_NEW_PROCESS_GROUP + DETACHED_PROCESS
+			# Windows: CREATE_NEW_PROCESS_GROUP + CREATE_NO_WINDOW
+			# Note: DETACHED_PROCESS causes Intel Fortran runtime (used by
+			# numpy/scipy BLAS) to abort with "forrtl: error (200): program
+			# aborting due to window-CLOSE event". CREATE_NO_WINDOW avoids this.
 			CREATE_NEW_PROCESS_GROUP = 0x00000200
-			DETACHED_PROCESS = 0x00000008
+			CREATE_NO_WINDOW = 0x08000000
 			subprocess.Popen(
 				cmd,
 				stdout=log,
 				stderr=log,
 				stdin=subprocess.DEVNULL,
-				creationflags=CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS,
+				creationflags=CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
 			)
 		else:
 			subprocess.Popen(
