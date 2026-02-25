@@ -234,7 +234,7 @@ def _spawn_coordinator():
 	print(f"Spawned coordinator (log: {log_file})", file=sys.stderr)
 
 
-def _wait_for_socket(timeout: float = 15.0):
+def _wait_for_socket(timeout: float = 90.0):
 	"""Poll until the coordinator's socket is connectable."""
 	deadline = time.monotonic() + timeout
 	while time.monotonic() < deadline:
