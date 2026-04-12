@@ -54,7 +54,9 @@ def _bootstrap_venv():
 		# os.execv on Windows doesn't truly replace the process (CPython spawns
 		# a child and exits the parent), which breaks MCP stdio pipes. Use
 		# subprocess.run instead: the parent stays alive, child inherits stdio.
-		result = subprocess.run(args)
+		# CREATE_NO_WINDOW suppresses any transient console pop-up in case the
+		# MCP host's launch environment doesn't already mask one.
+		result = subprocess.run(args, creationflags=0x08000000)  # CREATE_NO_WINDOW
 		sys.exit(result.returncode)
 	else:
 		os.execv(venv_python, args)
@@ -192,10 +194,21 @@ def _send_to_socket(cmd: dict) -> dict:
 
 
 def _spawn_coordinator():
-	"""Launch the coordinator as a detached background process."""
+	"""Launch the coordinator as a detached background process.
+
+	On Windows, prefer pythonw.exe over python.exe: python.exe is the console
+	subsystem Python binary and will allocate its own console window for a
+	detached child process, causing a terminal to flash up every time the
+	coordinator is spawned. pythonw.exe is the identical interpreter built for
+	the GUI subsystem — no console is ever attached. This is the standard
+	idiom for long-lived Windows background Python processes.
+	"""
 	# Find the venv Python (same logic as _bootstrap_venv)
 	if _IS_WINDOWS:
-		venv_python = os.path.join(_SERVER_DIR, ".venv", "Scripts", "python.exe")
+		scripts_dir = os.path.join(_SERVER_DIR, ".venv", "Scripts")
+		pythonw = os.path.join(scripts_dir, "pythonw.exe")
+		python = os.path.join(scripts_dir, "python.exe")
+		venv_python = pythonw if os.path.isfile(pythonw) else python
 	else:
 		venv_python = os.path.join(_SERVER_DIR, ".venv", "bin", "python")
 
@@ -209,15 +222,20 @@ def _spawn_coordinator():
 
 	with open(log_file, "a") as log:
 		if _IS_WINDOWS:
-			# Windows: CREATE_NEW_PROCESS_GROUP + DETACHED_PROCESS
-			CREATE_NEW_PROCESS_GROUP = 0x00000200
+			# DETACHED_PROCESS: child doesn't inherit the parent's console.
+			# CREATE_NEW_PROCESS_GROUP: child survives parent's Ctrl+C.
+			# CREATE_NO_WINDOW: belt-and-braces for the python.exe fallback
+			# path (ignored by Windows when DETACHED_PROCESS is honored).
 			DETACHED_PROCESS = 0x00000008
+			CREATE_NEW_PROCESS_GROUP = 0x00000200
+			CREATE_NO_WINDOW = 0x08000000
 			subprocess.Popen(
 				cmd,
 				stdout=log,
 				stderr=log,
 				stdin=subprocess.DEVNULL,
-				creationflags=CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS,
+				creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW,
+				close_fds=True,
 			)
 		else:
 			subprocess.Popen(

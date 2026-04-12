@@ -9,6 +9,26 @@ Usage:
 	python3 _coordinator.py [--socket PATH] [--pidfile PATH] [--idle-timeout SECS]
 """
 
+import sys
+
+
+# ---------------------------------------------------------------------------
+# Console detach (Windows) — must run before any other imports that might
+# touch stdio. The parent spawns us with DETACHED_PROCESS, but uv-created
+# venvs ship a pythonw.exe that is byte-identical to python.exe (both are
+# console-subsystem launchers), so Windows allocates a new console for the
+# coordinator anyway. FreeConsole detaches us from it; with no remaining
+# attached processes, the console window closes immediately.
+# ---------------------------------------------------------------------------
+
+if sys.platform == "win32":
+	import ctypes
+	try:
+		ctypes.windll.kernel32.FreeConsole()
+	except Exception:
+		pass
+
+
 import argparse
 import atexit
 import io
@@ -17,7 +37,6 @@ import os
 import queue
 import signal
 import socket
-import sys
 import tempfile
 import threading
 import time
