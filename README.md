@@ -1,4 +1,4 @@
-# Speak TTS MCP
+# TTS MCP
 
 MCP server that gives agents the ability to speak aloud, powered by [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) — a fast, lightweight, open-source text-to-speech model.
 
@@ -33,13 +33,13 @@ The setup script auto-registers with Claude Code when the `claude` CLI is on PAT
 **Linux / macOS:**
 
 ```bash
-claude mcp add-json speak-tts '{"type":"stdio","command":"/absolute/path/to/speak-tts-mcp/.venv/bin/python","args":["/absolute/path/to/speak-tts-mcp/server.py"]}' --scope user
+claude mcp add-json tts-mcp '{"type":"stdio","command":"/absolute/path/to/tts-mcp/.venv/bin/python","args":["/absolute/path/to/tts-mcp/server.py"]}' --scope user
 ```
 
 **Windows:**
 
 ```bash
-claude mcp add-json speak-tts "{\"type\":\"stdio\",\"command\":\"C:\\absolute\\path\\to\\speak-tts-mcp\\.venv\\Scripts\\python.exe\",\"args\":[\"C:\\absolute\\path\\to\\speak-tts-mcp\\server.py\"]}" --scope user
+claude mcp add-json tts-mcp "{\"type\":\"stdio\",\"command\":\"C:\\absolute\\path\\to\\tts-mcp\\.venv\\Scripts\\python.exe\",\"args\":[\"C:\\absolute\\path\\to\\tts-mcp\\server.py\"]}" --scope user
 ```
 
 ### 3. Restart Claude Code
@@ -58,18 +58,18 @@ Add to the `mcpServers` object in your config file:
 **Linux / macOS:**
 
 ```json
-"speak-tts": {
-  "command": "/absolute/path/to/speak-tts-mcp/.venv/bin/python",
-  "args": ["/absolute/path/to/speak-tts-mcp/server.py"]
+"tts-mcp": {
+  "command": "/absolute/path/to/tts-mcp/.venv/bin/python",
+  "args": ["/absolute/path/to/tts-mcp/server.py"]
 }
 ```
 
 **Windows:**
 
 ```json
-"speak-tts": {
-  "command": "C:\\absolute\\path\\to\\speak-tts-mcp\\.venv\\Scripts\\python.exe",
-  "args": ["C:\\absolute\\path\\to\\speak-tts-mcp\\server.py"]
+"tts-mcp": {
+  "command": "C:\\absolute\\path\\to\\tts-mcp\\.venv\\Scripts\\python.exe",
+  "args": ["C:\\absolute\\path\\to\\tts-mcp\\server.py"]
 }
 ```
 

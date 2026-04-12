@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Speak TTS MCP Server - Enables Claude to speak aloud via Kokoro-82M.
+"""TTS MCP Server - Enables agents to speak aloud via Kokoro-82M.
 
 This is a thin MCP client that validates inputs and routes audio commands to a
 long-lived coordinator process (_coordinator.py). The coordinator is
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
 from fastmcp import FastMCP
 
-mcp = FastMCP("speak-tts")
+mcp = FastMCP("tts-mcp")
 
 # ---------------------------------------------------------------------------
 # Coordinator connection constants
